@@ -61,7 +61,6 @@ sub _build_default_field_class { 'Form::DemonCore::Field' }
 has field_namespace => (
 	isa => 'Str',
 	is => 'rw',
-	predicate => 'has_field_namespace',
 );
 
 sub factory {
@@ -80,13 +79,8 @@ sub factory {
 	for (@fields) {
 		$form->add_field($_);
 	}
-	if (%defaults) {
-		$form->insert_defaults(\%defaults);
-	}
-	if (%input_values) {
-		$form->insert_inputs(\%input_values);
-		$form->validate;
-	}
+	$form->insert_defaults(\%defaults) if (%defaults);
+	$form->insert_inputs(\%input_values) if (%input_values);
 	return $form;
 }
 
@@ -110,7 +104,7 @@ sub field_factory {
 	my $class;
 	if (!defined $type) {
 		$class = $self->default_field_class;
-	} elsif ($self->has_field_namespace) {
+	} elsif ($self->field_namespace) {
 		$class = $self->field_namespace.'::'.$type;
 	}
 	die __PACKAGE__." can't handle type ".$type if !$class;
@@ -185,6 +179,21 @@ has is_submitted => (
 	default => sub { 0 },
 );
 
+has session => (
+	isa => 'HashRef',
+	is => 'rw',
+	predicate => 'has_session',
+);
+
+sub clear_form {
+	my ( $self ) = @_;
+	for ($self->all_fields) {
+		$_->clear_session;
+		$_->clear_input_value;
+		$_->populate;
+	}
+}
+
 sub validate {
 	my ( $self ) = @_;
 	return if $self->is_validated;
@@ -237,9 +246,11 @@ has errors => (
       testform => 1,
       testform_testfield => "test",
     },
+	session => $session,
   });
 
   if (my $result = $form->result) {
+    $form->clear_form; # to reset all values to default
     ...
   }
 
