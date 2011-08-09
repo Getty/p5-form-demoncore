@@ -8,11 +8,12 @@ use Form::DemonCore;
 
 my $form = Form::DemonCore->factory({
 	name => 'testform',
-	fields => {
-		testfield => {
+	fields => [
+		{
+			name => 'testfield',
 			notempty => 1,
 		},
-	},
+	],
 	input_values => {
 		testform => 1,
 		testform_testfield => "test",

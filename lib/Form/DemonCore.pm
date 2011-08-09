@@ -67,15 +67,15 @@ has field_namespace => (
 sub factory {
 	my ( $class, $config ) = @_;
 	my %input_values = %{delete $config->{input_values}} if defined $config->{input_values};
-	my %fields_hash = %{delete $config->{fields}} if defined $config->{fields};
+	my @field_defs = @{delete $config->{fields}} if defined $config->{fields};
 	my %defaults = %{delete $config->{defaults}} if defined $config->{defaults};
 	my @fields;
-	die "no fields defined" unless %fields_hash;
+	die "no fields defined" unless @field_defs;
 	my $form = $class->new(
 		%{$config},
 	);
-	for (keys %fields_hash) {
-		push @fields, $form->field_factory($_, delete $fields_hash{$_}->{type}, $fields_hash{$_});
+	for (@field_defs) {
+		push @fields, $form->field_factory(delete $_->{name}, delete $_->{type}, $_);
 	}
 	for (@fields) {
 		$form->add_field($_);
@@ -114,6 +114,10 @@ sub field_factory {
 		$class = $self->field_namespace.'::'.$type;
 	}
 	die __PACKAGE__." can't handle type ".$type if !$class;
+	my $file = $class;
+	$file =~ s/::/\//g;
+	$file .= '.pm';
+	require $file;
 	return $class->new(
 		form => $self,
 		name => $name,
@@ -223,11 +227,12 @@ has errors => (
 
   my $form = Form::DemonCore->factory({
     name => 'testform',
-    fields => {
-      testfield => {
+    fields => [
+      {
+        name => 'testfield',
         notempty => 1,
       },
-    },
+    ],
     input_values => {
       testform => 1,
       testform_testfield => "test",
@@ -242,7 +247,7 @@ has errors => (
 
 IRC
 
-  Talk to Getty on irc.perl.org.
+  Join #demoncore on irc.perl.org.
 
 Repository
 

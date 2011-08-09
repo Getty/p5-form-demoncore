@@ -1,5 +1,6 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	- minimal API change about definition of fields
 
 0.001     2011-08-09 07:28:01 Europe/Berlin
