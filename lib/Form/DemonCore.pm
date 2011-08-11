@@ -63,6 +63,13 @@ has field_namespace => (
 	is => 'rw',
 );
 
+sub field_by_name {
+	my ( $self, $name ) = @_;
+	for ($self->all_fields) {
+		return $_ if $_->name eq $name;
+	}
+}
+
 sub factory {
 	my ( $class, $config ) = @_;
 	my %input_values = %{delete $config->{input_values}} if defined $config->{input_values};
